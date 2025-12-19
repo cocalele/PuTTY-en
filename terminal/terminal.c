@@ -1336,13 +1336,38 @@ static void term_update_callback(void *ctx)
         printf("Not update for cooldown is true");
     }
 }
-
-static void term_schedule_update(Terminal *term)
+static void term_schedule_update(Terminal* term)
 {
     if (!term->window_update_pending) {
         term->window_update_pending = true;
         queue_toplevel_callback(term_update_callback, term);
     }
+}
+
+extern unsigned long get_timer_tick();
+void unfroze_term(void* ctx)
+{
+	Terminal* term = (Terminal*)ctx;
+    printf("unfroze make at: " __DATE__ "\n");
+    
+	//term_pwron(term, false);
+	////3. 再下次把2的两行放到这里, 0208, 尝试改这里
+	//term->tblink_pending = false;
+	//term->cblink_pending = false;
+
+	unsigned long now = GETTICKCOUNT();
+	printf("now is: %lu, timer's now is :%lu\n", now, get_timer_tick());
+    term->window_update_cooldown_end = now;
+	term->window_update_pending = false;
+	term_update(term);
+	term->window_update_cooldown = false;
+
+
+    term_schedule_update(term);
+    expire_timer_context(term); //added sep.8
+	term->window_update_cooldown_end = schedule_timer(
+		UPDATE_DELAY, term_timer, term);
+
 }
 
 /*

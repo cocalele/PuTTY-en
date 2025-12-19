@@ -137,7 +137,8 @@ unsigned long schedule_timer(int ticks, timer_fn_t fn, void *ctx)
     }
 
     first = (struct timer *)index234(timers, 0);
-    if (first == t) {
+    //adopt change from https://github.com/cyd01/KiTTY/issues/475
+    if (first == t || first != NULL && first->now + 10 * (TICKSPERSEC) < now) {
         /*
          * This timer is the very first on the list, so we must
          * notify the front end.
@@ -219,4 +220,8 @@ void expire_timer_context(void *ctx)
      * simply don't need to do anything.
      */
     del234(timer_contexts, ctx);
+}
+
+unsigned long get_timer_tick() {
+    return now;
 }

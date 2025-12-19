@@ -13,7 +13,7 @@
 
 #include "version.h"
 
-const char ver[] = TEXTVER;
+const char ver[] = TEXTVER " at: " __DATE__ " " __TIME__;
 const char sshver[] = SSHVER;
 
 /*

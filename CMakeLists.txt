@@ -54,7 +54,7 @@ add_library(agent STATIC
   sshpubk.c pageant.c aqsync.c)
 
 add_library(guiterminal STATIC
-  terminal/terminal.c terminal/bidi.c
+  terminal/terminal.c terminal/bidi.c terminal/keyword-match.c
   ldisc.c terminal/lineedit.c config.c dialog.c
   $<TARGET_OBJECTS:logging>)
 

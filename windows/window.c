@@ -44,7 +44,7 @@
 #define IDM_CLRSB     0x0060
 #define IDM_RESET     0x0070
 #define IDM_AUTORECONNECT 0x0080
-#define IDM_LOGPAINT 0x0090
+#define IDM_UNFROZEN 0x0090
 #define IDM_HELP      0x0140
 #define IDM_ABOUT     0x0150
 #define IDM_SAVEDSESS 0x0160
@@ -764,7 +764,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev, LPSTR cmdline, int show)
             AppendMenu(m, MF_ENABLED, IDM_NEWSESS, "Ne&w Session...");
             AppendMenu(m, MF_ENABLED, IDM_DUPSESS, "&Duplicate Session");
             AppendMenu(m, MF_ENABLED, IDM_AUTORECONNECT, "Auto Reconnect");
-			AppendMenu(m, MF_ENABLED, IDM_LOGPAINT, "Show windows console");
+			AppendMenu(m, MF_ENABLED, IDM_UNFROZEN, "Rescue frozen(0504)");
 
             AppendMenu(m, MF_POPUP | MF_ENABLED, (UINT_PTR)wgs->savedsess_menu,
                        "Sa&ved Sessions");
@@ -2238,6 +2238,7 @@ static void wm_size_resize_term(WinGuiSeat *wgs, LPARAM lParam, bool border)
                   conf_get_int(wgs->conf, CONF_savelines));
     }
 }
+void unfroze_term(void* ctx);
 
 static LRESULT CALLBACK WndProc(HWND hwnd, UINT message,
                                 WPARAM wParam, LPARAM lParam)
@@ -2405,19 +2406,16 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message,
 				  CheckMenuItem(wgs->popup_menus[i].menu, IDM_AUTORECONNECT, auto_reconnect ? MF_CHECKED : MF_UNCHECKED);
 		  }
 		  break;
-		  case IDM_LOGPAINT:
+		  case IDM_UNFROZEN:
 		  {
-			  int i = 0;
-			  logpaint = !logpaint;
-              lp_eventlog(&wgs->logpolicy, "----- logprint toggled -----");
-			  for (i = 0; i < lenof(wgs->popup_menus); i++)
-				  CheckMenuItem(wgs->popup_menus[i].menu, IDM_LOGPAINT, logpaint ? MF_CHECKED : MF_UNCHECKED);
-              if(logpaint){
-				  AllocConsole();
-	              FILE* stream;
-	              freopen_s(&stream, "CON", "r", stdin);//重定向输入流
-	              freopen_s(&stream, "CON", "w", stdout);//重定向输入流
-              }
+			  //AllocConsole();
+	    //      FILE* stream;
+	    //      freopen_s(&stream, "CON", "r", stdin);//重定向输入流
+	    //      freopen_s(&stream, "CON", "w", stdout);//重定向输入流
+              //unfroze_term(wgs->term);
+              
+              //SetEvent(winselcli_event); //通知主线程，终端已经解冻
+              timer_change_notify(0);
 		  }
 		  break;
 
@@ -2894,13 +2892,13 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message,
          */
         assert(!wgs->wintw_hdc);
         wgs->wintw_hdc = hdc;
-        if(logpaint){
-            printf("Paint(%d-%d,%d-%d,%d-%d,%d-%d), pending:%d\n",
-                p.rcPaint.left , wgs->offset_width,
-                p.rcPaint.top , wgs->offset_height,
-                p.rcPaint.right , wgs->offset_width - 1,
-                p.rcPaint.bottom , wgs->offset_height - 1, wgs->term->window_update_pending);
-        }
+        //if(logpaint){
+        //    printf("Paint(%d-%d,%d-%d,%d-%d,%d-%d), pending:%d\n",
+        //        p.rcPaint.left , wgs->offset_width,
+        //        p.rcPaint.top , wgs->offset_height,
+        //        p.rcPaint.right , wgs->offset_width - 1,
+        //        p.rcPaint.bottom , wgs->offset_height - 1, wgs->term->window_update_pending);
+        //}
         term_paint(wgs->term,
                    (p.rcPaint.left-wgs->offset_width)/wgs->font_width,
                    (p.rcPaint.top-wgs->offset_height)/wgs->font_height,
